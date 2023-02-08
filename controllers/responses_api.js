@@ -1,4 +1,4 @@
-const responseModel = require('../models/responses')
+const responseModel = require('../models/responses_model')
 
 //Get All Responses
 const getall = async (request, response) => {
@@ -40,7 +40,7 @@ const addResponse = async (request, response) => {
     const { title, email, survey } = request.body;
 
     const existingResponse = await responseModel.findOne({ title: title, email: email })
-    // console.log(!existingResponse)
+
     if(!existingResponse ){
         const result = await responseModel.create({
             title: title,
@@ -52,7 +52,7 @@ const addResponse = async (request, response) => {
                 response.send(error);
             else
             response.status(200).json({
-                "msg": `FoResponse Recorded...`,
+                "msg": `Response Recorded...`,
                 "Response": doc
             })
         })

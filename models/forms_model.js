@@ -1,11 +1,11 @@
 const mongoose=require('mongoose');
 
-const userSchema =mongoose.Schema({
-    firstname:{
+const formsSchema =mongoose.Schema({
+    userid:{
         type:String,
         required:true
     },
-    lastname:{
+    title:{
         type:String,
         required:true
     },
@@ -13,12 +13,12 @@ const userSchema =mongoose.Schema({
         type:String,
         required:true
     },
-    password:{
-        type:String,
-        required:true
+    survey:{
+        type:Array,
+        required:false
     }
     
 },{timestamps:true});
 
 mongoose.set('strictQuery', false);
-module.exports=mongoose.model('user',userSchema);
+module.exports=mongoose.model('forms',formsSchema);

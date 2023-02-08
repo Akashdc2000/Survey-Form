@@ -1,4 +1,4 @@
-const userModel = require('../models/user')
+const userModel = require('../models/users_model')
 
 
 const bcrypt = require('bcrypt');
@@ -8,7 +8,7 @@ const saltRounds = 10;
 //Add new User
 const register = async (request, response) => {
 
-    const { firstname, lastname, email, password } = request.body;
+    const { firstname, lastname, email, mobile,password } = request.body;
 
     const existingUser = await userModel.findOne({ email: email })
     if (existingUser) {
@@ -20,6 +20,7 @@ const register = async (request, response) => {
         firstname: firstname,
         lastname: lastname,
         email: email,
+        mobile:mobile,
         password: hashPassword
     })
     result.save((error, doc) => {
@@ -35,7 +36,10 @@ const register = async (request, response) => {
 const getall = async (request, response) => {
     try {
         const result = await userModel.find({});
-        response.send(result);
+        response.status(200).json({
+            "msg": `Total ${result.length} Users`,
+            "Users": result
+        })
     } catch (error) {
         response.send(error)
     }
@@ -55,7 +59,7 @@ const login = async (request, response) => {
     if (!matchPassword) {
         return response.status(401).json({ message: 'Invalid Credentials' });
     }
-    response.status(201).json({"msg":"Login Successfully done..."})
+    response.status(201).json({ "msg": "Login Successfully done..." })
 
 }
 
@@ -63,7 +67,7 @@ const login = async (request, response) => {
 //Update User Details
 
 const update = async (request, response) => {
-    const { firstname, lastname, email, password } = request.body;
+    const { firstname, lastname, email,mobile, password } = request.body;
 
     const hashPassword = await bcrypt.hash(password, saltRounds);
 
@@ -71,21 +75,49 @@ const update = async (request, response) => {
         firstname: firstname,
         lastname: lastname,
         email: email,
+        mobile:mobile,
         password: hashPassword
     }
+
     const id = request.params._id
     try {
-        const result = await userModel.findByIdAndUpdate(id, user);
-        response.status(200).json({
-            "msg": `Following User Updated Succesfully...`,
-            "User": user
-        })
+        userModel.findByIdAndUpdate(id, user,(error, doc) => {
+            if (error) response.status(404).json(error)
+            if (!doc)
+                response.status(404).json({ "msg": "User Not Present in Database...." })
+            else
+                response.status(200).json({
+                    "msg": `Following User Updated Succesfully...`,
+                    "User": user
+                })
+        });
+
     } catch (error) {
-        response.status(404).json({ "msg": "User Not Present...." })
+        response.status(404).json({ "msg": "User Not Present in Database...." })
     }
 }
 
+//Delete User Details
+const deleteUser = async (request, response) => {
+
+    const id = request.params._id;
+    try {
+        userModel.findByIdAndDelete(id, (error, doc) => {
+            if (error) response.status(404).json(error)
+            if (!doc)
+                response.status(404).json({ "msg": "User Not Present in Database...." })
+            else
+                response.status(200).json({
+                    "msg": `Following User Deleted Succesfully...`,
+                    "User": doc
+                })
+        });
+
+    } catch (error) {
+        response.status(404).json({ "msg": "User Not Present in Database...." })
+    }
+}
 
 module.exports = {
-    getall, register, update, login
+    getall, register, update, login, deleteUser
 }
