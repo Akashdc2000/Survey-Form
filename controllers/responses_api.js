@@ -1,4 +1,5 @@
 const responseModel = require('../models/responses_model')
+const formsModel = require('../models/forms_model')
 
 //Get All Responses
 const getall = async (request, response) => {
@@ -17,10 +18,10 @@ const getall = async (request, response) => {
 }
 
 //Get Response By a Title/Name
-const getResponseByTitle = async (request, response) => {
+const getResponseBySurveyId = async (request, response) => {
     try {
-        const title = request.params.title;
-        const result = await responseModel.find({ title: title });
+        const survey_id = request.params._id;
+        const result = await responseModel.find({ survey_id:survey_id });
         if (result.length <= 0)
             response.status(404).json({ "msg": "No response Found..." })
         else
@@ -37,29 +38,34 @@ const getResponseByTitle = async (request, response) => {
 //Add new Response
 const addResponse = async (request, response) => {
 
-    const { title, email, survey } = request.body;
+    const { title,email, survey } = request.body;
 
-    const existingResponse = await responseModel.findOne({ title: title, email: email })
-
-    if(!existingResponse ){
+    const existingSurvey = await formsModel.findOne({ _id: request.params._id })
+    if(!existingSurvey){
+        response.status(409).json({ "Msg": "No Form For the given Survey ID" })
+    }
+    const existingResponse=await responseModel.findOne({title:title,email:email})
+    if (!existingResponse) {
         const result = await responseModel.create({
+            survey_id: request.params._id,
             title: title,
-            email: email,
+            email:email,
             survey: survey
         })
         result.save((error, doc) => {
             if (error)
                 response.send(error);
             else
-            response.status(200).json({
-                "msg": `Response Recorded...`,
-                "Response": doc
-            })
+                response.status(200).json({
+                    "msg": `Response Recorded...`,
+                    "Response": doc
+                })
         })
     }
     else{
-        response.status(409).json({"Msg":"You have already submitted Response..."})
+        response.status(200).json({"msg":"Response already Submitted.."})
     }
+    
 
 }
 
@@ -112,6 +118,20 @@ const deleteResponse = async (request, response) => {
 }
 
 
+//Get Response ID
+const getResponseID = async (request, response) => {
+    try {
+        const {title,email} = request.body;
+        const result = await responseModel.findOne({ title:title,email:email });
+        if (result.length <= 0)
+            response.status(404).json({ "msg": "No Response Found..." })
+        else
+            response.status(200).json({"response_id":result._id})
+    } catch (error) {
+        response.send(error)
+    }
+}
+
 module.exports = {
-    getall, addResponse, getResponseByTitle, deleteResponse, updateResponse
+    getall, addResponse, getResponseBySurveyId, deleteResponse, updateResponse,getResponseID
 }

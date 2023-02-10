@@ -1,4 +1,5 @@
 const formsModel = require('../models/forms_model')
+const userModel = require('../models/users_model')
 
 //Get All Survey
 const getall = async (request, response) => {
@@ -34,31 +35,52 @@ const getSurvey = async (request, response) => {
 }
 
 
+//Get Single Survey of a User
+const getIndivisualSurvey = async (request, response) => {
+    try {
+        const survey_id = request.params._id;
+        const result = await formsModel.findOne({ _id: survey_id });
+        if (result.length <= 0)
+            response.status(404).json({ "msg": "No Survey Found..." })
+        else
+            response.status(200).json(result)
+    } catch (error) {
+        response.send(error)
+    }
+}
+
 //Add new Response
 const createSurvey = async (request, response) => {
 
-    const { userid, title, email, survey } = request.body;
+    const { title, email, survey } = request.body;
 
-    const existingSurvey = await formsModel.findOne({ userid: userid, title: title })
-    if (!existingSurvey) {
-        const result = await formsModel.create({
-            userid: userid,
-            title: title,
-            email: email,
-            survey: survey
-        })
-        result.save((error, doc) => {
-            if (error)
-                response.send(error);
-            else
-                response.status(200).json({
-                    "msg": `Survey Created...`,
-                    "Response": doc
-                })
-        })
+    const existingUser = await userModel.findOne({ email: email })
+    if (!existingUser) {
+        response.status(409).json({ "Msg": "You are not Authorized User" })
     }
-    else{
-        response.status(409).json({"Msg":"You have already Created Survey of same title..."})
+    else {
+        const existingSurvey = await formsModel.findOne({ userid: existingUser._id, title: title })
+        if (!existingSurvey) {
+            const result = await formsModel.create({
+                userid: existingUser._id,
+                title: title,
+                email: email,
+                survey: survey
+            })
+            result.save((error, doc) => {
+                if (error)
+                    response.send(error);
+                else
+                    response.status(200).json({
+                        "msg": `Survey Created...`,
+                        "Response": doc
+                    })
+            })
+        }
+        else {
+            response.status(409).json({ "Msg": "You have already Created Survey of same title..." })
+        }
+
     }
 
 
@@ -67,9 +89,8 @@ const createSurvey = async (request, response) => {
 
 //Update Survey
 const updateSurvey = async (request, response) => {
-    const { userid, title, email, survey } = request.body;
+    const { title, email, survey } = request.body;
     const updatedSurvey = {
-        userid: userid,
         title: title,
         email: email,
         survey: survey
@@ -95,7 +116,7 @@ const updateSurvey = async (request, response) => {
 
 
 
-//Delete Survey
+//Delete Survey by Survey_id(_id)
 const deleteSurvey = async (request, response) => {
 
     const id = request.params._id;
@@ -117,6 +138,20 @@ const deleteSurvey = async (request, response) => {
 }
 
 
+//Get Survey ID
+const getSurveyID = async (request, response) => {
+    try {
+        const {title,email} = request.body;
+        const result = await formsModel.findOne({ title:title,email:email });
+        if (result.length <= 0)
+            response.status(404).json({ "msg": "No Survey Found..." })
+        else
+            response.status(200).json({"survey_id":result._id})
+    } catch (error) {
+        response.send(error)
+    }
+}
+
 module.exports = {
-    getall, createSurvey, getSurvey, deleteSurvey, updateSurvey
+    getall, createSurvey, getSurvey, deleteSurvey, updateSurvey, getIndivisualSurvey,getSurveyID
 }

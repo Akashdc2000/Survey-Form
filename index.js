@@ -12,7 +12,7 @@ const app = express()
 app.use(cors());
 app.use(express.json())
 
-
+//Routers
 app.use('/users', users); 
 app.use('/responses', responses)
 app.use('/survey',forms)

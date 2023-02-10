@@ -1,6 +1,10 @@
 const mongoose=require('mongoose');
-
+var ObjectId = require('mongodb').ObjectId;
 const responsesSchema =mongoose.Schema({
+    survey_id:{
+        type:ObjectId,
+        required:true
+    },
     title:{
         type:String,
         required:true

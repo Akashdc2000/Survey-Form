@@ -1,8 +1,8 @@
 const mongoose=require('mongoose');
-
+var ObjectId = require('mongodb').ObjectId;
 const formsSchema =mongoose.Schema({
     userid:{
-        type:String,
+        type:ObjectId,
         required:true
     },
     title:{
